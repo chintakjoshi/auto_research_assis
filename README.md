@@ -1,3 +1,7 @@
 # auto_research_assis
 
-source myenv/Scripts/activate
+python -m venv venv
+source venv/Scripts/activate
+pip install -r requirements.txt
+export $(cat .env | xargs)
+uvicorn main:app --reload

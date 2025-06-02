@@ -9,3 +9,5 @@ langchain
 langchain-community
 langchain-openai
 python-dotenv
+pinecone
+sentence-transformers

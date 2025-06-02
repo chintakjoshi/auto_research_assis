@@ -4,13 +4,14 @@ from pydantic import BaseModel
 from agents.planner import plan_query
 from agents.executors import summarize_abstracts
 from utils.arxiv_client import fetch_arxiv_papers
+from utils.vector_store import search_similar
+from utils.vector_store import upsert_papers
 from models.schemas import Paper, SummarizationRequest, Summary
 from dotenv import load_dotenv
 
 load_dotenv()
 app = FastAPI()
 
-# Allow frontend CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], allow_credentials=True,
@@ -21,7 +22,12 @@ app.add_middleware(
 def query_papers(topic: str = Query(..., description="Search topic or keywords")):
     sub_tasks = plan_query(topic)
     papers = fetch_arxiv_papers(sub_tasks["search_query"])
+    upsert_papers([p.dict() for p in papers])
     return papers
+
+@app.get("/semantic_search")
+def semantic_search(q: str):
+    return search_similar(q)
 
 @app.post("/summarize", response_model=Summary)
 def summarize(request: SummarizationRequest):

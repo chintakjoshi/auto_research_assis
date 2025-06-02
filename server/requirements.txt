@@ -11,3 +11,4 @@ langchain-openai
 python-dotenv
 pinecone
 sentence-transformers
+biopython

@@ -3,7 +3,7 @@ import axios from "axios";
 const BASE_URL = "http://localhost:8000";
 
 export const fetchPapers = async (topic) => {
-    const res = await axios.get(`${BASE_URL}/query`, {
+    const res = await axios.get(`${BASE_URL}/query_all`, {
         params: { topic },
     });
     return res.data;

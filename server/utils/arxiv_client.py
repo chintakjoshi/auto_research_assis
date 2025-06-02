@@ -14,6 +14,7 @@ def fetch_arxiv_papers(query: str, max_results: int = 5) -> list[Paper]:
             authors=[a.name for a in result.authors],
             abstract=result.summary,
             published=str(result.published),
-            url=result.entry_id
+            url=result.entry_id,
+            source="arXiv"
         ))
     return results

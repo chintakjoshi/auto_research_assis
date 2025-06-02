@@ -7,6 +7,7 @@ class Paper(BaseModel):
     abstract: str
     published: str
     url: str
+    source: str
 
 class SummarizationRequest(BaseModel):
     abstracts: List[str]

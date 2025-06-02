@@ -4,8 +4,8 @@ from pydantic import BaseModel
 from agents.planner import plan_query
 from agents.executors import summarize_abstracts
 from utils.arxiv_client import fetch_arxiv_papers
-from utils.vector_store import search_similar
-from utils.vector_store import upsert_papers
+from utils.vector_store import search_similar, upsert_papers
+from utils.pubmed_client import fetch_pubmed_papers
 from models.schemas import Paper, SummarizationRequest, Summary
 from dotenv import load_dotenv
 
@@ -18,12 +18,14 @@ app.add_middleware(
     allow_methods=["*"], allow_headers=["*"]
 )
 
-@app.get("/query", response_model=list[Paper])
-def query_papers(topic: str = Query(..., description="Search topic or keywords")):
+@app.get("/query_all", response_model=list[Paper])
+def query_all(topic: str = Query(..., description="Search topic or keywords")):
     sub_tasks = plan_query(topic)
-    papers = fetch_arxiv_papers(sub_tasks["search_query"])
-    upsert_papers([p.dict() for p in papers])
-    return papers
+    arxiv_papers = fetch_arxiv_papers(sub_tasks["search_query"])
+    pubmed_papers = fetch_pubmed_papers(sub_tasks["search_query"])
+    upsert_papers([p.dict() for p in arxiv_papers])
+    upsert_papers([p.dict() for p in pubmed_papers])
+    return arxiv_papers + pubmed_papers
 
 @app.get("/semantic_search")
 def semantic_search(q: str):

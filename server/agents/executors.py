@@ -6,9 +6,9 @@ from langchain.chains import LLMChain
 def summarize_abstracts(abstracts: list[str]) -> str:
     llm = ChatOpenAI(
         temperature=0.3,
-        model=os.getenv("OPENAI_MODEL_NAME"),
-        openai_api_key=os.getenv("OPENAI_API_KEY"),
-        openai_api_base=os.getenv("OPENAI_API_BASE")
+        model=os.getenv("OPENAI_MODEL_NAME", "").strip(),
+        openai_api_key=os.getenv("OPENAI_API_KEY", "").strip(),
+        openai_api_base=os.getenv("OPENAI_API_BASE", "").strip()
     )
 
     prompt = PromptTemplate.from_template("""

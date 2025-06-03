@@ -2,6 +2,7 @@ import { useState } from "react";
 import { fetchPapers, summarizeAbstracts } from "./api";
 import PaperList from "./components/PaperList";
 import SummaryBox from "./components/SummaryBox";
+import RAGSummaryPanel from './components/RAGSummaryPanel';
 
 function App() {
   const [topic, setTopic] = useState("");
@@ -40,12 +41,17 @@ function App() {
       <PaperList papers={papers} />
 
       {papers.length > 0 && (
-        <button onClick={handleSummarize} style={{ marginTop: "1rem" }}>
+        <button onClick={handleSummarize} style={{ marginTop: "1rem", background: "#000000" }}>
           Summarize All
         </button>
       )}
 
       {summary && <SummaryBox text={summary} />}
+
+      <div style={{ marginTop: "3rem" }}>
+        <h2>Or generate a smart summary directly:</h2>
+        <RAGSummaryPanel />
+      </div>
     </div>
   );
 }

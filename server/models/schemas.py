@@ -14,3 +14,6 @@ class SummarizationRequest(BaseModel):
 
 class Summary(BaseModel):
     summary: str
+
+class RAGSummaryRequest(BaseModel):
+    query: str

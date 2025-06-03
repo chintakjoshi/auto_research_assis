@@ -1,0 +1,7 @@
+OPENAI_API_BASE=https://openrouter.ai/api/v1
+OPENAI_API_KEY= api key
+OPENAI_MODEL_NAME= model name
+PINECONE_API_KEY= api key
+PINECONE_ENV= region
+PINECONE_INDEX_NAME=research-assistant-index
+USER_EMAIL= email

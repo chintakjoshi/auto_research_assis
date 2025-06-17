@@ -1,5 +1,6 @@
 import os
 from pinecone import Pinecone, ServerlessSpec
+from models.schemas import Paper
 
 from utils.embedder import embed_text
 
@@ -27,8 +28,9 @@ if PINECONE_INDEX_NAME not in [i.name for i in pc.list_indexes()]:
 # Connect to the index
 index = pc.Index(PINECONE_INDEX_NAME)
 
-def upsert_papers(papers: list[dict]):
-    texts = [p["abstract"] for p in papers]
+def upsert_papers(papers: list[Paper | dict]):
+    papers_dicts = [p.dict() if hasattr(p, "dict") else p for p in papers]
+    texts = [p["abstract"] for p in papers_dicts]
     embeddings = embed_text(texts)
     vectors = [
         {
@@ -41,7 +43,7 @@ def upsert_papers(papers: list[dict]):
                 "url": p.get("url", "")
             },
         }
-        for i, (emb, p) in enumerate(zip(embeddings, papers))
+        for i, (emb, p) in enumerate(zip(embeddings, papers_dicts))
     ]
     index.upsert(vectors=vectors)
 

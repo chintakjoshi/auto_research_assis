@@ -1,4 +1,4 @@
-function PaperList({ papers }) {
+function PapersContextDisplay({ papers }) {
   return (
     <div>
       {papers.map((p, idx) => (
@@ -15,4 +15,4 @@ function PaperList({ papers }) {
   );
 }
 
-export default PaperList;
+export default PapersContextDisplay;

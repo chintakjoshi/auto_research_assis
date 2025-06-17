@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { fetchPapers, summarizeAbstracts } from "./api";
-import PaperList from "./components/PaperList";
-import SummaryBox from "./components/SummaryBox";
-import RAGSummaryPanel from './components/RAGSummaryPanel';
+import PapersContextDisplay from "./components/PapersContextDisplay";
+import QueryAndSummary from './components/QueryAndSummary';
 
 function App() {
   const [topic, setTopic] = useState("");
@@ -38,19 +37,23 @@ function App() {
 
       {loading && <p>Loading...</p>}
 
-      <PaperList papers={papers} />
+      <PapersContextDisplay papers={papers} />
 
       {papers.length > 0 && (
-        <button onClick={handleSummarize} style={{ marginTop: "1rem", background: "#000000" }}>
+        <button onClick={handleSummarize} style={{ marginTop: "1rem", background: "#000000", color: "white" }}>
           Summarize All
         </button>
       )}
 
-      {summary && <SummaryBox text={summary} />}
+      {summary && (
+        <div style={{ marginTop: "2rem", padding: "1rem", background: "#000000", color: "white" }}>
+          <h2>Summary</h2>
+          <pre style={{ whiteSpace: "pre-wrap" }}>{summary}</pre>
+        </div>
+      )}
 
       <div style={{ marginTop: "3rem" }}>
-        <h2>Or generate a smart summary directly:</h2>
-        <RAGSummaryPanel />
+        <QueryAndSummary />
       </div>
     </div>
   );

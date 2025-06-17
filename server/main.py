@@ -1,11 +1,10 @@
-from fastapi import FastAPI, Query
+import logging
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from agents.planner import plan_query
+from agents.planner import plan_query_mcp
 from agents.executors import summarize_abstracts
-from utils.arxiv_client import fetch_arxiv_papers
+from agents.router import route_and_fetch
 from utils.vector_store import search_similar, upsert_papers
-from utils.pubmed_client import fetch_pubmed_papers
 from models.schemas import Paper, SummarizationRequest, Summary, RAGSummaryRequest
 from dotenv import load_dotenv
 
@@ -19,13 +18,29 @@ app.add_middleware(
 )
 
 @app.get("/query_all", response_model=list[Paper])
-def query_all(topic: str = Query(..., description="Search topic or keywords")):
-    sub_tasks = plan_query(topic)
-    arxiv_papers = fetch_arxiv_papers(sub_tasks["search_query"])
-    pubmed_papers = fetch_pubmed_papers(sub_tasks["search_query"])
-    upsert_papers([p.dict() for p in arxiv_papers])
-    upsert_papers([p.dict() for p in pubmed_papers])
-    return arxiv_papers + pubmed_papers
+def query_all(topic: str):
+    plan = plan_query_mcp(topic)
+    papers = route_and_fetch(plan)
+    upsert_papers(papers)
+
+    def safe_paper(p):
+        return {
+            "title": p.get("title", ""),
+            "authors": p.get("authors", []),
+            "abstract": p.get("abstract", ""),
+            "published": p.get("published", ""),
+            "url": p.get("url", ""),
+            "source": p.get("source", "unknown")
+        }
+
+    sanitized = []
+    for p in papers:
+        if "abstract" in p and "title" in p:
+            try:
+                sanitized.append(safe_paper(p))
+            except Exception as e:
+                logging.warning(f"Skipping invalid paper: {e}")
+    return sanitized
 
 @app.get("/semantic_search")
 def semantic_search(q: str):
@@ -33,14 +48,32 @@ def semantic_search(q: str):
 
 @app.post("/rag_summarize", response_model=Summary)
 def rag_summarize(request: RAGSummaryRequest):
-    matches = search_similar(request.query)
-    abstracts = [m["abstract"] for m in matches if "abstract" in m]
+    plan = plan_query_mcp(request.query)
+    context = route_and_fetch(plan)
+
+    def safe_paper(p):
+        return {
+            "title": p.get("title", ""),
+            "authors": p.get("authors", []),
+            "abstract": p.get("abstract", ""),
+            "published": p.get("published", ""),
+            "url": p.get("url", ""),
+            "source": p.get("source", "unknown")
+        }
+
+    cleaned = [safe_paper(p) for p in context if "abstract" in p]
+    abstracts = [p["abstract"] for p in cleaned]
+
     if not abstracts:
-        return {"summary": "No relevant papers found."}
-    summary = summarize_abstracts(abstracts)
-    return {"summary": summary}
+        return {"summary": "No relevant abstracts found."}
+
+    return {"summary": summarize_abstracts(abstracts)}
 
 @app.post("/summarize", response_model=Summary)
 def summarize(request: SummarizationRequest):
     summary = summarize_abstracts(request.abstracts)
     return {"summary": summary}
+
+@app.get("/plan")
+def get_execution_plan(topic: str):
+    return plan_query_mcp(topic).dict()
